@@ -8,11 +8,21 @@ import matplotlib.pyplot as plt
 # Data generation
 # -------------------------
 def generate_data(n=200):
-    # TODO: generate X ~ N(0, I)
-    X = None
+    # generate 200 random 2D points
 
-    # TODO: assign labels using circle rule
-    y = None
+    rng: np.random.Generator = np.random.default_rng()
+    # generate X ~ N(0, I)
+    X: np.ndarray = rng.normal(loc=0.0, scale=1.0, size=(n, 2))
+
+    # assign labels using circle rule
+    y: np.ndarray = np.zeros(n)
+    for i in range(n):
+        x1 = X[i, 0]
+        x2 = X[i, 1]
+        if x1**2 + x2**2 <= 1:
+            y[i] = -1
+        else:
+            y[i] = 1
 
     return X, y
 
@@ -21,43 +31,94 @@ def generate_data(n=200):
 # Feature mapping
 # -------------------------
 def feature_map(X):
-    # TODO: return [x1, x2, x1^2, x2^2]
-    return None
+    # return [x1, x2, x1^2, x2^2]
+    X_mapped = np.zeros((X.shape[0], 4))
+    X_mapped[:, 0] = X[:, 0]  # x1
+    X_mapped[:, 1] = X[:, 1]  # x2
+    X_mapped[:, 2] = X[:, 0] ** 2  # x1^2
+    X_mapped[:, 3] = X[:, 1] ** 2  # x2^2
+
+    return X_mapped
 
 
 # -------------------------
 # Split data
 # -------------------------
 def split_data(X, y):
-    # TODO: split into train/val/test (60/20/20)
-    return None
+    n = len(X)
+    # randomly shuffle dataset
+    rng = np.random.default_rng()
+    indices = np.arange(n)
+    rng.shuffle(indices)
+    X = X[indices]
+    y = y[indices]
+
+    # split into train/val/test (60/20/20)
+    train_size = int(0.6 * n)
+    val_size = int(0.2 * n)
+    test_size = int(0.2 * n)
+
+    X_train, y_train = X[:train_size], y[:train_size]
+    X_val, y_val = (
+        X[train_size : train_size + val_size],
+        y[train_size : train_size + val_size],
+    )
+    # test set is the remaining data
+    X_test, y_test = X[train_size + val_size :], y[train_size + val_size :]
+
+    return X_train, y_train, X_val, y_val, X_test, y_test
 
 
 # -------------------------
 # Loss
 # -------------------------
 def compute_loss(X, y, w, b):
-    return None
+    # Note: X must be mapped features
+    loss = 0
+    for i, point in enumerate(X):
+        z = np.dot(w.transpose(), point) + b
+        loss += np.log(1 + np.exp(-y[i] * z))
+
+    # average all over n
+    return loss / len(X)
 
 
 # -------------------------
 # Gradients
 # -------------------------
 def compute_gradients(X, y, w, b):
-    return None, None
+    # Note: X must be mapped features
+    n = len(X)
+    dw = np.zeros(w.shape)
+    db = 0
+    # compute gradients dw and db
+    for i, point in enumerate(X):
+        u = -y[i] * (np.dot(w.transpose(), point) + b)
+        log_derivative = np.exp(u) / (1 + np.exp(u))
+        dw += log_derivative * (-y[i] * point)
+        db += log_derivative * (-y[i])
+
+    # average all over n
+    dw /= n
+    db /= n
+    return dw, db
 
 
 # -------------------------
 # Training
 # -------------------------
 def train(X, y, lr, epochs=200):
-    # TODO: initialize parameters
-    w = None
-    b = None
+    # initialize parameters
+    w = np.zeros(X.shape[1])
+    b = 0
 
     for _ in range(epochs):
-        # TODO: update parameters
-        pass
+        # compute gradients
+        dw, db = compute_gradients(X, y, w, b)
+
+        # update parameters
+        w = w - lr * dw
+        b = b - lr * db
 
     return w, b
 
@@ -66,8 +127,15 @@ def train(X, y, lr, epochs=200):
 # Prediction
 # -------------------------
 def predict(X, w, b):
-    # TODO: return -1 or +1
-    return None
+    # return -1 or +1
+    y_hat = np.zeros(X.shape[0])  # 200 points
+    for i, point in enumerate(X):
+        z = np.dot(w.transpose(), point) + b
+        if z >= 0:
+            y_hat[i] = 1
+        else:
+            y_hat[i] = -1
+    return y_hat
 
 
 # -------------------------
@@ -98,10 +166,21 @@ if __name__ == "__main__":
 
         val_errors.append(err)
 
-    # TODO: choose best lr
-    best_lr = None
+    # choose best lr
+    best_lr = learning_rates[np.argmin(val_errors)]
+    print(f"Best learning rate: {best_lr}")
 
-    # TODO: retrain on training set
-    # TODO: evaluate on test set
+    # retrain on training set
+    w, b = train(X_train, y_train, best_lr)
 
-    # TODO: plot validation error vs lr
+    # evaluate on test set
+    preds_test = predict(X_test, w, b)
+    test_error = compute_error(y_test, preds_test)
+    print(f"Test error: {test_error}")
+
+    # plot validation error vs lr
+    plt.plot(learning_rates, val_errors, marker="o")
+    plt.xscale("log")  # log scale, e.g., 10^-3, 10^-2, 10^-1 for better visualization
+    plt.xlabel("Learning Rate")
+    plt.ylabel("Validation Error")
+    plt.show()

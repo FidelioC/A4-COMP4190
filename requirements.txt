@@ -1,0 +1,5 @@
+numpy==2.0.2
+matplotlib==3.10.8
+torch
+transformers
+datasets

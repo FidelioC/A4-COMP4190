@@ -131,6 +131,6 @@ if __name__ == "__main__":
     preds = predict(X, w, b)
     acc = np.mean(preds == y)
 
-    print("Training accuracy:", acc)
+    print("Training accuracy: ", acc)
 
     plot_decision_boundary(X, y, w, b)

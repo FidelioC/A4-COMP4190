@@ -15,13 +15,112 @@
 
 \begin{document}
 \maketitle
+\newpage
 
 \section*{Problem 4}
 
 \begin{itemize}
-  \item \textbf{compute\_gradients}
+  \item \textbf{generate\_data(n=100)}
   \begin{itemize}
-    \item 
+    \item Generates $n$ random 2D points sampled from a standard normal distribution ($\mu=0$, $\sigma=1$). Assigns label $y_i = -1$ if $x_1 + x_2 \leq 0$, and $y_i = +1$ otherwise. Returns the data matrix $X$ and label vector $y$.
+
+  \end{itemize}
+
+  \item \textbf{compute\_loss(X, y, w, b)}
+  \begin{itemize}
+    \item Computes the average logistic loss over all $n$ data points:
+    $\mathcal{L} = \frac{1}{n}\sum_{i=1}^{n} \log(1 + e^{-y_i(w^\top x_i + b)})$.
+  \end{itemize}
+
+  \item \textbf{compute\_gradients(X, y, w, b)}
+  \begin{itemize}
+    \item Computes the gradients of the logistic loss with respect to $w$ and $b$ by iterating over all data points and averaging. Uses the chain rule: the derivative of $\log(1+e^u)$ with respect to $u$ is $\frac{e^u}{1+e^u}$.
+  \end{itemize}
+
+  \item \textbf{gradient\_descent(X, y, lr=0.1, epochs=100)}
+  \begin{itemize}
+    \item Initializes $w = \mathbf{0}$ and $b = 0$, then iteratively updates the parameters using gradient descent ($w \leftarrow w - \alpha \nabla_w$, $b \leftarrow b - \alpha \nabla_b$) for a fixed number of epochs. Returns the learned $w$ and $b$.
+  \end{itemize}
+
+  \item \textbf{predict(X, w, b)}
+  \begin{itemize}
+    \item Produces predicted labels for each point: assigns $\hat{y}_i = +1$ if $w^\top x_i + b \geq 0$, and $\hat{y}_i = -1$ otherwise. Returns the predicted label vector $\hat{y}$.
+  \end{itemize}
+
+  \item \textbf{plot\_decision\_boundary(X, y, w, b)}
+  \begin{itemize}
+    \item Visualizes the dataset by plotting each point colored by its true label (blue for $+1$, red for $-1$). Draws the decision boundary line $w_1 x_1 + w_2 x_2 + b = 0$ by solving for $x_2 = -(w_1 x_1 + b)/w_2$ over the range of $x_1$ values.
+  \end{itemize}
+\end{itemize}
+
+\newpage
+\section*{Problem 5}
+
+\begin{itemize}
+  \item \textbf{generate\_data(n=200)}
+  \begin{itemize}
+    \item Generates $n$ random 2D points sampled from a standard normal distribution ($\mu=0$, $\sigma=1$). Assigns label $y_i = -1$ if $x_1^2 + x_2^2 \leq 1$ (inside the unit circle), and $y_i = +1$ otherwise. Returns the data matrix $X$ and label vector $y$.
+  \end{itemize}
+
+  \item \textbf{feature\_map(X)}
+  \begin{itemize}
+    \item Applies a polynomial feature mapping to the input data, expanding each 2D point $(x_1, x_2)$ into a 4D feature vector $[x_1,\, x_2,\, x_1^2,\, x_2^2]$ to allow a linear classifier to capture the circular decision boundary.
+  \end{itemize}
+
+  \item \textbf{split\_data(X, y)}
+  \begin{itemize}
+    \item Randomly shuffles the dataset and splits it into training (60\%), validation (20\%), and test (20\%) sets. Returns $X_{\text{train}}, y_{\text{train}}, X_{\text{val}}, y_{\text{val}}, X_{\text{test}}, y_{\text{test}}$.
+  \end{itemize}
+
+  \item \textbf{compute\_loss(X, y, w, b)}
+  \begin{itemize}
+    \item Computes the average logistic loss over all $n$ data points (using mapped features):
+    $\mathcal{L} = \frac{1}{n}\sum_{i=1}^{n} \log(1 + e^{-y_i(w^\top x_i + b)})$.
+  \end{itemize}
+
+  \item \textbf{compute\_gradients(X, y, w, b)}
+  \begin{itemize}
+    \item Computes the average gradients of the logistic loss with respect to $w$ and $b$ over all data points (using mapped features). Returns $\nabla_w$ and $\nabla_b$.
+  \end{itemize}
+
+  \item \textbf{train(X, y, lr, epochs=200)}
+  \begin{itemize}
+    \item Initializes $w = \mathbf{0}$ and $b = 0$, then runs gradient descent for a given number of epochs with learning rate \texttt{lr}. Returns the learned parameters $w$ and $b$.
+  \end{itemize}
+
+  \item \textbf{predict(X, w, b)}
+  \begin{itemize}
+    \item Returns predicted labels for each point: assigns $\hat{y}_i = +1$ if $w^\top x_i + b \geq 0$, and $\hat{y}_i = -1$ otherwise.
+  \end{itemize}
+
+  \item \textbf{compute\_error(y\_true, y\_pred)}
+  \begin{itemize}
+    \item Computes the classification error as the fraction of misclassified points: $\text{error} = \frac{1}{n}\sum_{i=1}^{n} \mathbf{1}[\hat{y}_i \neq y_i]$.
+  \end{itemize}
+\end{itemize}
+
+\newpage
+\section*{Problem 6}
+
+\begin{itemize}
+  \item \textbf{run\_mlm\_example()}
+  \begin{itemize}
+    \item Run masked language modeling using DistilBERT. Tokenizes the sentence \texttt{"Machine learning is very [MASK]"}, runs the model, and prints the top 10 predicted words for the masked token along with their probabilities.
+  \end{itemize}
+
+  \item \textbf{load\_data()}
+  \begin{itemize}
+    \item Loads the IMDb dataset and selects a subset: 500 shuffled training samples and 200 validation samples (from the test split). Returns the train and validation splits.
+  \end{itemize}
+
+  \item \textbf{tokenize\_function(example)}
+  \begin{itemize}
+    \item Tokenizes a single dataset example using the DistilBERT tokenizer with padding to \texttt{max\_length=64} and truncation. Used as a mapping function over the dataset.
+  \end{itemize}
+
+  \item \textbf{train\_model(dataset)}
+  \begin{itemize}
+    \item Tokenizes and formats the train and validation sets, loads \texttt{distilbert-base-uncased} for sequence classification, and fine-tunes it for one epoch using the Hugging Face \texttt{Trainer} API with fixed hyperparameters. Returns the trained \texttt{Trainer} object.
   \end{itemize}
 \end{itemize}
 
